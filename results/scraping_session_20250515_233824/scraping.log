@@ -1,0 +1,91 @@
+2025-05-15 23:38:24,663 - INFO - ==================================================
+2025-05-15 23:38:24,663 - INFO - Rumah123 Property Scraper
+2025-05-15 23:38:24,663 - INFO - ==================================================
+2025-05-15 23:38:24,663 - INFO - Starting scraper at 2025-05-15 23:38:24
+2025-05-15 23:38:24,663 - INFO - Will scrape up to 1 pages from https://www.rumah123.com/jual/dki-jakarta/rumah/
+2025-05-15 23:38:24,663 - INFO - Results will be saved to: results\scraping_session_20250515_233824
+2025-05-15 23:38:24,663 - INFO - Scraping page 1/1...
+2025-05-15 23:38:24,663 - INFO - Retrieving listing page: https://www.rumah123.com/jual/dki-jakarta/rumah/?page=1
+2025-05-15 23:38:29,729 - INFO - No property cards found on https://www.rumah123.com/jual/dki-jakarta/rumah/?page=1, trying generic link extraction
+2025-05-15 23:38:29,739 - INFO - Found 20 unique property links on https://www.rumah123.com/jual/dki-jakarta/rumah/?page=1
+2025-05-15 23:38:29,742 - INFO - Added 20 new unique links from page 1
+2025-05-15 23:38:29,743 - INFO - Total unique links found: 20
+2025-05-15 23:38:29,743 - INFO - Saved 20 links to results\scraping_session_20250515_233824\property_links.txt
+2025-05-15 23:38:29,743 - INFO - Scraping property 1/20: https://www.rumah123.com/properti/jakarta-barat/hos38947189/
+2025-05-15 23:38:30,379 - INFO - Received response from https://www.rumah123.com/properti/jakarta-barat/hos38947189/ - Size: 379652 bytes
+2025-05-15 23:38:30,491 - INFO - Scraping property 2/20: https://www.rumah123.com/properti/jakarta-utara/hos19474412/
+2025-05-15 23:38:30,491 - INFO - Waiting 3.04 seconds before next property
+2025-05-15 23:38:33,999 - INFO - Received response from https://www.rumah123.com/properti/jakarta-utara/hos19474412/ - Size: 388936 bytes
+2025-05-15 23:38:34,159 - INFO - Scraping property 3/20: https://www.rumah123.com/properti/jakarta-barat/hos15922474/
+2025-05-15 23:38:34,159 - INFO - Waiting 4.02 seconds before next property
+2025-05-15 23:38:40,900 - INFO - Received response from https://www.rumah123.com/properti/jakarta-barat/hos15922474/ - Size: 395417 bytes
+2025-05-15 23:38:40,979 - INFO - Scraping property 4/20: https://www.rumah123.com/properti/jakarta-selatan/hos39105727/
+2025-05-15 23:38:40,982 - INFO - Waiting 2.67 seconds before next property
+2025-05-15 23:38:44,721 - INFO - Received response from https://www.rumah123.com/properti/jakarta-selatan/hos39105727/ - Size: 395846 bytes
+2025-05-15 23:38:44,829 - INFO - Scraping property 5/20: https://www.rumah123.com/properti/jakarta-selatan/hos19244690/
+2025-05-15 23:38:44,829 - INFO - Waiting 2.04 seconds before next property
+2025-05-15 23:38:47,179 - INFO - Received response from https://www.rumah123.com/properti/jakarta-selatan/hos19244690/ - Size: 405337 bytes
+2025-05-15 23:38:47,259 - INFO - Saved 5 unique property records to results\scraping_session_20250515_233824\interim_results_20250515_233847.csv
+2025-05-15 23:38:47,266 - INFO - CSV includes 38 columns
+2025-05-15 23:38:47,266 - INFO - Saved interim results to results\scraping_session_20250515_233824\interim_results_20250515_233847.csv
+2025-05-15 23:38:47,266 - INFO - Scraping property 6/20: https://www.rumah123.com/properti/jakarta-timur/hos14806975/
+2025-05-15 23:38:47,266 - INFO - Waiting 2.18 seconds before next property
+2025-05-15 23:38:49,739 - INFO - Received response from https://www.rumah123.com/properti/jakarta-timur/hos14806975/ - Size: 423675 bytes
+2025-05-15 23:38:49,831 - INFO - Scraping property 7/20: https://www.rumah123.com/properti/jakarta-utara/hos12174955/
+2025-05-15 23:38:49,831 - INFO - Waiting 2.51 seconds before next property
+2025-05-15 23:38:52,701 - INFO - Received response from https://www.rumah123.com/properti/jakarta-utara/hos12174955/ - Size: 399057 bytes
+2025-05-15 23:38:52,799 - INFO - Scraping property 8/20: https://www.rumah123.com/properti/jakarta-utara/hos39157555/
+2025-05-15 23:38:52,799 - INFO - Waiting 3.97 seconds before next property
+2025-05-15 23:38:57,619 - INFO - Received response from https://www.rumah123.com/properti/jakarta-utara/hos39157555/ - Size: 413481 bytes
+2025-05-15 23:38:57,709 - INFO - Scraping property 9/20: https://www.rumah123.com/properti/jakarta-selatan/hos39124900/
+2025-05-15 23:38:57,709 - INFO - Waiting 2.71 seconds before next property
+2025-05-15 23:39:00,619 - INFO - Received response from https://www.rumah123.com/properti/jakarta-selatan/hos39124900/ - Size: 415328 bytes
+2025-05-15 23:39:00,729 - INFO - Scraping property 10/20: https://www.rumah123.com/properti/jakarta-barat/hos19478420/
+2025-05-15 23:39:00,732 - INFO - Waiting 2.99 seconds before next property
+2025-05-15 23:39:04,016 - INFO - Received response from https://www.rumah123.com/properti/jakarta-barat/hos19478420/ - Size: 424169 bytes
+2025-05-15 23:39:04,142 - INFO - Saved 10 unique property records to results\scraping_session_20250515_233824\interim_results_20250515_233904.csv
+2025-05-15 23:39:04,142 - INFO - CSV includes 39 columns
+2025-05-15 23:39:04,142 - INFO - Saved interim results to results\scraping_session_20250515_233824\interim_results_20250515_233904.csv
+2025-05-15 23:39:04,143 - INFO - Scraping property 11/20: https://www.rumah123.com/properti/jakarta-selatan/hos39116026/
+2025-05-15 23:39:04,143 - INFO - Waiting 2.90 seconds before next property
+2025-05-15 23:39:07,299 - INFO - Received response from https://www.rumah123.com/properti/jakarta-selatan/hos39116026/ - Size: 395585 bytes
+2025-05-15 23:39:07,366 - INFO - Scraping property 12/20: https://www.rumah123.com/properti/jakarta-selatan/hos39117049/
+2025-05-15 23:39:07,366 - INFO - Waiting 2.36 seconds before next property
+2025-05-15 23:39:10,029 - INFO - Received response from https://www.rumah123.com/properti/jakarta-selatan/hos39117049/ - Size: 413401 bytes
+2025-05-15 23:39:10,103 - INFO - Scraping property 13/20: https://www.rumah123.com/properti/jakarta-selatan/hos16797598/
+2025-05-15 23:39:10,103 - INFO - Waiting 4.17 seconds before next property
+2025-05-15 23:39:14,540 - INFO - Received response from https://www.rumah123.com/properti/jakarta-selatan/hos16797598/ - Size: 415495 bytes
+2025-05-15 23:39:14,619 - INFO - Scraping property 14/20: https://www.rumah123.com/properti/jakarta-selatan/hos17758409/
+2025-05-15 23:39:14,619 - INFO - Waiting 4.87 seconds before next property
+2025-05-15 23:39:19,779 - INFO - Received response from https://www.rumah123.com/properti/jakarta-selatan/hos17758409/ - Size: 416810 bytes
+2025-05-15 23:39:19,850 - INFO - Scraping property 15/20: https://www.rumah123.com/properti/jakarta-barat/hos39078843/
+2025-05-15 23:39:19,858 - INFO - Waiting 2.03 seconds before next property
+2025-05-15 23:39:22,280 - INFO - Received response from https://www.rumah123.com/properti/jakarta-barat/hos39078843/ - Size: 398562 bytes
+2025-05-15 23:39:22,406 - INFO - Saved 15 unique property records to results\scraping_session_20250515_233824\interim_results_20250515_233922.csv
+2025-05-15 23:39:22,406 - INFO - CSV includes 39 columns
+2025-05-15 23:39:22,406 - INFO - Saved interim results to results\scraping_session_20250515_233824\interim_results_20250515_233922.csv
+2025-05-15 23:39:22,406 - INFO - Scraping property 16/20: https://www.rumah123.com/properti/jakarta-barat/hos19121235/
+2025-05-15 23:39:22,409 - INFO - Waiting 3.12 seconds before next property
+2025-05-15 23:39:25,879 - INFO - Received response from https://www.rumah123.com/properti/jakarta-barat/hos19121235/ - Size: 390560 bytes
+2025-05-15 23:39:25,981 - INFO - Scraping property 17/20: https://www.rumah123.com/properti/jakarta-utara/hos38862891/
+2025-05-15 23:39:25,981 - INFO - Waiting 2.06 seconds before next property
+2025-05-15 23:39:28,319 - INFO - Received response from https://www.rumah123.com/properti/jakarta-utara/hos38862891/ - Size: 388151 bytes
+2025-05-15 23:39:28,412 - INFO - Scraping property 18/20: https://www.rumah123.com/properti/jakarta-barat/hos16528630/
+2025-05-15 23:39:28,412 - INFO - Waiting 2.94 seconds before next property
+2025-05-15 23:39:31,699 - INFO - Received response from https://www.rumah123.com/properti/jakarta-barat/hos16528630/ - Size: 400822 bytes
+2025-05-15 23:39:31,799 - INFO - Scraping property 19/20: https://www.rumah123.com/properti/jakarta-barat/hos19583582/
+2025-05-15 23:39:31,799 - INFO - Waiting 4.06 seconds before next property
+2025-05-15 23:39:36,119 - INFO - Received response from https://www.rumah123.com/properti/jakarta-barat/hos19583582/ - Size: 404216 bytes
+2025-05-15 23:39:36,229 - INFO - Scraping property 20/20: https://www.rumah123.com/properti/jakarta-utara/hos38899382/
+2025-05-15 23:39:36,229 - INFO - Waiting 2.30 seconds before next property
+2025-05-15 23:39:38,809 - INFO - Received response from https://www.rumah123.com/properti/jakarta-utara/hos38899382/ - Size: 405445 bytes
+2025-05-15 23:39:38,959 - INFO - Saved 20 unique property records to results\scraping_session_20250515_233824\interim_results_20250515_233938.csv
+2025-05-15 23:39:38,959 - INFO - CSV includes 39 columns
+2025-05-15 23:39:38,959 - INFO - Saved interim results to results\scraping_session_20250515_233824\interim_results_20250515_233938.csv
+2025-05-15 23:39:38,959 - INFO - Successfully scraped 20 unique properties
+2025-05-15 23:39:38,964 - INFO - Saved 20 unique property records to results\scraping_session_20250515_233824\rumah123_properties_final.csv
+2025-05-15 23:39:38,964 - INFO - CSV includes 39 columns
+2025-05-15 23:39:38,964 - INFO - Scraping completed successfully! Data saved to results\scraping_session_20250515_233824\rumah123_properties_final.csv
+2025-05-15 23:39:38,964 - INFO - Saved 0 specification fields to results\scraping_session_20250515_233824\property_specifications_summary.csv
+2025-05-15 23:39:38,964 - INFO - Specification fields summary saved to results\scraping_session_20250515_233824\property_specifications_summary.csv
+2025-05-15 23:39:38,969 - INFO - Scraping session completed at 2025-05-15 23:39:38
