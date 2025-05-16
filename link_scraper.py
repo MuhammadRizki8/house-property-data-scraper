@@ -12,7 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 from urllib.parse import urlparse
 
-from utils import get_headers
+from utils import get_headers, request_with_backoff
 
 def extract_links_from_page(url, base_url="https://www.rumah123.com"):
     """
@@ -27,7 +27,13 @@ def extract_links_from_page(url, base_url="https://www.rumah123.com"):
     """
     try:
         logging.info(f"Retrieving listing page: {url}")
-        res = requests.get(url, headers=get_headers(), timeout=30)
+        # res = requests.get(url, headers=get_headers(), timeout=30)
+        res = request_with_backoff(
+            url,
+            headers=get_headers(),
+            timeout=30
+        )
+        res.raise_for_status() 
         res.raise_for_status()
         soup = BeautifulSoup(res.text, "html.parser")
         

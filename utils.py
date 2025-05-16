@@ -9,7 +9,8 @@ import csv
 import random
 import logging
 from datetime import datetime
-
+import time
+import requests
 # Global set to track all specification fields encountered across all properties
 ALL_SPEC_FIELDS = set()
 
@@ -210,6 +211,84 @@ def deduplicate_properties(properties, key="url"):
         logging.info(f"Removed {duplicate_count} duplicate properties")
     
     return unique_properties
+
+def request_with_backoff(
+    url,
+    headers=None,
+    params=None,
+    max_retries=5,
+    backoff_factor=1.5,
+    status_forcelist=(429, 500, 502, 503, 504),
+    **kwargs
+):
+    """
+    Perform GET with exponential backoff on specified status codes.
+    """
+    for attempt in range(1, max_retries + 1):
+        resp = requests.get(url, headers=headers, params=params, **kwargs)
+        if resp.status_code not in status_forcelist:
+            return resp
+
+        wait = backoff_factor ** attempt + random.uniform(0, 1)
+        logging.warning(
+            f"[{resp.status_code}] Rate‑limited or server error on {url}. "
+            f"Retry {attempt}/{max_retries} after {wait:.1f}s"
+        )
+        time.sleep(wait)
+
+    # terakhir, coba sekali lagi dan biarkan exception jika gagal
+    resp = requests.get(url, headers=headers, params=params, **kwargs)
+    resp.raise_for_status()
+    return resp
+
+def load_links_from_file(file_path):
+    """
+    Load property links from a text file
+    
+    Args:
+        file_path (str): Path to the file containing links
+        
+    Returns:
+        list: List of property links
+    """
+    if not os.path.exists(file_path):
+        logging.error(f"Links file not found: {file_path}")
+        return []
+    
+    try:
+        with open(file_path, 'r', encoding='utf-8') as f:
+            links = [line.strip() for line in f if line.strip()]
+        
+        logging.info(f"Loaded {len(links)} property links from {file_path}")
+        return links
+    except Exception as e:
+        logging.error(f"Error loading links from file: {str(e)}")
+        return []
+
+def save_links_to_file(links, file_path):
+    """
+    Save property links to a text file
+    
+    Args:
+        links (list): List of property links
+        file_path (str): Path to save the links
+        
+    Returns:
+        bool: True if successful, False otherwise
+    """
+    try:
+        # Create directory if it doesn't exist
+        os.makedirs(os.path.dirname(os.path.abspath(file_path)), exist_ok=True)
+        
+        with open(file_path, 'w', encoding='utf-8') as f:
+            for link in links:
+                f.write(f"{link}\n")
+        
+        logging.info(f"Saved {len(links)} property links to {file_path}")
+        return True
+    except Exception as e:
+        logging.error(f"Error saving links to file: {str(e)}")
+        return False
 
 if __name__ == "__main__":
     # This allows the module to be run independently for testing
