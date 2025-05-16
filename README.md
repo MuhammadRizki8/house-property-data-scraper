@@ -44,7 +44,7 @@ python main.py
 ```
 python main.py --pages 3 --delay-min 1 --delay-max 3 --url "https://www.rumah123.com/jual/jawa-barat/rumah/"
 ```
-- --pages: jumlah halaman yang ingin di-scrape (default: 1)
+- --pages: jumlah halaman yang ingin di-scrape (default: 1, perhalaman ada sekitar 20 data)
 - --delay-min / --delay-max: delay antar request (dalam detik)
 - --url: URL awal yang ingin di-scrape
 
