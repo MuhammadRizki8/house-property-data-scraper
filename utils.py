@@ -10,14 +10,6 @@ import random
 import logging
 from datetime import datetime
 
-# Core fields to include in the CSV
-CORE_PROPERTY_FIELDS = [
-    "url", "title", "location", "price", "price_numeric", "original_price", 
-    "original_price_numeric", "savings", "property_type", "building_size", 
-    "land_size", "electricity", "floors", "updated_date", "posted_by",
-    "description", "installment_info"
-]
-
 # Global set to track all specification fields encountered across all properties
 ALL_SPEC_FIELDS = set()
 
@@ -105,7 +97,7 @@ def clean_price(price_text):
 
 def save_to_csv(data, filename=None):
     """
-    Save data to CSV file with dynamic columns
+    Save data to CSV file with all columns present in the data
     
     Args:
         data (list): List of property data dictionaries
@@ -129,34 +121,14 @@ def save_to_csv(data, filename=None):
     for record in data:
         all_fields.update(record.keys())
     
-    # Organize fields in a logical order:
-    # 1. Core fields first
-    ordered_fields = [field for field in CORE_PROPERTY_FIELDS if field in all_fields]
+    # Remove internal tracking fields
+    if "all_specifications" in all_fields:
+        all_fields.remove("all_specifications")
     
-    # 2. Add specifications_text field that contains all specs in a single cell
-    if "specifications_text" in all_fields:
-        ordered_fields.append("specifications_text")
-        all_fields.remove("specifications_text")
-    
-    # 3. Add individual specification fields (those starting with "spec_")
-    spec_fields = sorted([field for field in all_fields if field.startswith("spec_")])
-    ordered_fields.extend(spec_fields)
-    for field in spec_fields:
-        if field in all_fields:
-            all_fields.remove(field)
-    
-    # 4. Add any remaining fields
-    remaining_fields = sorted(list(all_fields))
-    ordered_fields.extend(remaining_fields)
-    
-    # Remove 'all_specifications' field if it exists - we don't want this in the CSV
-    if "all_specifications" in ordered_fields:
-        ordered_fields.remove("all_specifications")
-    
-    # Remove 'error' field if it exists - we want to keep this in a separate column
+    # Move error field to the end if it exists
+    ordered_fields = sorted(list(all_fields))
     if "error" in ordered_fields:
         ordered_fields.remove("error")
-        # Add it at the end
         ordered_fields.append("error")
     
     try:
@@ -167,9 +139,9 @@ def save_to_csv(data, filename=None):
             writer = csv.DictWriter(f, fieldnames=ordered_fields, extrasaction='ignore')
             writer.writeheader()
             
-            # Write data but ignore 'all_specifications' dictionary
+            # Write data but ignore internal tracking fields
             for property_item in data:
-                # Create a copy without the 'all_specifications' key
+                # Create a copy without the tracking keys
                 clean_item = {k: v for k, v in property_item.items() if k != "all_specifications"}
                 writer.writerow(clean_item)
         

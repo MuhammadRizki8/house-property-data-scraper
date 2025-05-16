@@ -20,13 +20,15 @@ from utils import get_headers, clean_price, save_to_csv
 # Set of all specification fields encountered across all properties
 ALL_SPEC_FIELDS = set()
 
-def extract_property_details(url):
+
+def extract_property_details(url, split_details=True):
     """
     Extract details from a property page
-    
+
     Args:
         url (str): URL of the property page
-        
+        split_details (bool): If True, split specifications/facilities/POI into multiple columns. If False, only keep *_text fields.
+
     Returns:
         dict: Dictionary containing property details
     """
@@ -63,9 +65,8 @@ def extract_property_details(url):
             "description": None,
             "installment_info": None,
             "specifications_text": "",
-            "interior_exterior": None,
-            "facilities": None,
-            "surroundings": None,
+            "facilities_text": "",  # New field for facilities as text
+            "poi_text": "",  # New field for Points of Interest as text
         }
         
         # Extract title
@@ -164,10 +165,10 @@ def extract_property_details(url):
                     ALL_SPEC_FIELDS.add(clean_label)
         
         # Create specification columns with spec_ prefix
-        for key, value in all_specs.items():
-            # Create a sanitized column name to avoid CSV issues
-            column_name = f"spec_{key.replace(' ', '_').replace(':', '').replace(',', '').replace(';', '')}"
-            property_data[column_name] = value
+        if split_details:
+            for key, value in all_specs.items():
+                column_name = f"spec_{key.replace(' ', '_').replace(':', '').replace(',', '').replace(';', '')}"
+                property_data[column_name] = value
             
         # Store specifications as a single text field for easy viewing
         if all_specs:
@@ -188,146 +189,147 @@ def extract_property_details(url):
                 property_data["description"] = desc_elem.text.strip()
                 break
         
-        # Try to extract structured data from JSON-LD as a fallback
-        for script in soup.find_all("script", {"type": "application/ld+json"}):
+        # Extract facilities data by category
+        all_facilities = []
+        facility_categories = [
+            "Fasilitas Rumah",
+            "Fasilitas Perumahan", 
+            "Perabotan"
+        ]
+        
+        # Initialize category text fields in property_data
+        for category in facility_categories:
+            sanitized_category = category.lower().replace(" ", "_")
+            property_data[f"{sanitized_category}_text"] = ""
+        
+        # Process each facility category
+        for category in facility_categories:
+            # Prepare the ID selector with escaped spaces
+            category_id = category.replace(" ", "\\ ")
+            category_selector = f"div#property-facility-{category_id}"
+            
             try:
-                json_data = json.loads(script.string)
+                # Find the category element
+                category_elem = soup.select_one(category_selector)
                 
-                # Extract data from structured JSON if available and not already found
-                if isinstance(json_data, dict):
-                    if "name" in json_data and not property_data["title"]:
-                        property_data["title"] = json_data["name"]
+                if category_elem:
+                    # Look for facilities in this category
+                    facility_items = category_elem.select("div.flex.flex-wrap p")
+                    category_facilities = []
                     
-                    if "address" in json_data and isinstance(json_data["address"], dict):
-                        address_parts = []
-                        for field in ["streetAddress", "addressLocality", "addressRegion"]:
-                            if field in json_data["address"] and json_data["address"][field]:
-                                address_parts.append(json_data["address"][field])
-                        
-                        if address_parts and not property_data["location"]:
-                            property_data["location"] = ", ".join(address_parts)
+                    for item in facility_items:
+                        # Extract facility name from span
+                        span_elem = item.select_one("span.text-sm.font-light")
+                        if span_elem and span_elem.text.strip():
+                            facility_name = span_elem.text.strip()
+                            
+                            # Add to category-specific list
+                            category_facilities.append(facility_name)
+                            
+                            # Add to all facilities list
+                            all_facilities.append(facility_name)
+                            
+                            # Create individual boolean field
+                            if split_details:
+                                column_name = f"facility_{facility_name.lower().replace(' ', '_').replace('-', '_').replace('.', '').replace(',', '')}"
+                                property_data[column_name] = True
                     
-                    if "offers" in json_data and isinstance(json_data["offers"], dict):
-                        if "price" in json_data["offers"] and not property_data.get("price_numeric"):
-                            try:
-                                property_data["price_numeric"] = float(json_data["offers"]["price"])
-                                if not property_data["price"]:
-                                    property_data["price"] = json_data["offers"]["price"]
-                            except:
-                                pass
-            except:
-                # If JSON parsing fails, continue to the next script tag
-                continue
-                
-        # Extract collapsible sections (like Interior & Exterior)
-        # These sections may be hidden but should still be in the HTML
-        collapsible_sections = {
-            "Interior & Exterior": "interior_exterior",
-            "Fasilitas": "facilities",
-            "Sekitar Properti": "surroundings"
-        }
+                    # Store category facilities as text
+                    if category_facilities:
+                        sanitized_category = category.lower().replace(" ", "_")
+                        property_data[f"{sanitized_category}_text"] = ", ".join(category_facilities)
+            except Exception as e:
+                logging.warning(f"Error extracting facilities for category {category}: {str(e)}")
         
-        # First approach - find sections by button text
-        for section_name, field_name in collapsible_sections.items():
-            section_items = []
+        # Store all facilities as a single text field
+        if all_facilities:
+            property_data["facilities_text"] = ", ".join(all_facilities)
             
-            # Find all button elements that might contain section headers
-            section_buttons = soup.find_all("button", class_=lambda x: x and "flex" in x and "items-center" in x and "justify-between" in x)
+        # Fallback extraction method in case category-based extraction missed some facilities
+        if not all_facilities:
+            try:
+                # Try a more generic selector to find facilities
+                generic_facility_items = soup.select("div[id^='property-facility'] div.flex.flex-wrap p span.text-sm.font-light")
+                if generic_facility_items:
+                    generic_facilities = [item.text.strip() for item in generic_facility_items if item.text.strip()]
+                    
+                    # Add these to property_data
+                    for facility in generic_facilities:
+                        column_name = f"facility_{facility.lower().replace(' ', '_').replace('-', '_').replace('.', '').replace(',', '')}"
+                        property_data[column_name] = True
+                    
+                    # Update the text field
+                    property_data["facilities_text"] = ", ".join(generic_facilities)
+            except Exception as e:
+                logging.warning(f"Error in fallback facility extraction: {str(e)}")
+
+        # NEW CODE: Extract Points of Interest (POI) by category
+        try:
+            # Select the entire POI section
+            poi_section = soup.select_one("div#property-poi")
             
-            for button in section_buttons:
-                # Find the div containing the section name
-                title_div = button.find("div", class_="text-sm font-bold")
+            if poi_section:
+                all_poi_categories = {}
+                all_pois = []
                 
-                if title_div and section_name in title_div.text:
-                    # Found the section button, now find the parent element
-                    parent_element = button.parent
+                # Find all category sections
+                poi_categories = poi_section.select("div.mb-4.pb-2.border-0.border-b.border-solid.border-gray-200")
+                
+                for category_section in poi_categories:
+                    # Extract category name from the SVG title or p tag
+                    category_elem = category_section.select_one("p.flex.items-center.gap-2.mb-2.text-sm")
                     
-                    # The content div should be the next sibling to the button
-                    content_div = None
-                    
-                    # First, check if there's a div directly inside the parent after the button
-                    if parent_element:
-                        # Look for all divs inside this parent
-                        inner_divs = parent_element.find_all("div", recursive=False)
-                        for div in inner_divs:
-                            # Skip the div that contains the button
-                            if not div.find("button"):
-                                content_div = div
-                                break
-                    
-                    # If we found the content div, extract the items
-                    if content_div:
-                        # Find all item divs
-                        item_divs = content_div.find_all("div", class_=lambda x: x and "mb-4" in x and "flex" in x and "items-center" in x)
+                    if category_elem:
+                        # Extract the category name (remove the SVG icon from consideration)
+                        svg_elem = category_elem.select_one("svg")
+                        if svg_elem:
+                            svg_elem.extract()  # Remove SVG temporarily to get clean text
                         
-                        for item_div in item_divs:
-                            # Find label and value
-                            label_elem = item_div.find("p", class_=lambda x: x and "w-32" in x)
-                            value_elem = item_div.find("p", class_=lambda x: x is None or "w-32" not in x)
-                            
-                            if label_elem and value_elem:
-                                label = label_elem.text.strip()
-                                value = value_elem.text.strip()
-                                section_items.append(f"{label}: {value}")
-            
-            # Add to property data if we found any items
-            if section_items:
-                property_data[field_name] = "; ".join(section_items)
-                
-        # Second approach - more generic search for collapsed content
-        # This is a fallback in case the first approach didn't find anything
-        for section_name, field_name in collapsible_sections.items():
-            # Skip if we already found data for this field
-            if property_data[field_name]:
-                continue
-                
-            section_items = []
-            
-            # Find all divs that might be collapsible sections
-            all_possible_sections = soup.find_all("div", class_=lambda x: x and "border-b" in x)
-            
-            for section in all_possible_sections:
-                # Look for the section title
-                title_text = section.get_text()
-                if section_name in title_text:
-                    # Now look for all items in this section
-                    item_divs = section.find_all("div", class_=lambda x: x and "mb-4" in x and "flex" in x)
-                    
-                    for item_div in item_divs:
-                        # Try different selectors for label and value
-                        label_elem = item_div.find(["p", "span"], class_=lambda x: x and ("w-32" in x or "text-gray-500" in x))
+                        category_name = category_elem.text.strip()
                         
-                        # Value might be in any p or span that's not the label
-                        if label_elem:
-                            # Find the next sibling that's a p or span
-                            value_elem = label_elem.find_next_sibling(["p", "span"])
+                        # Find all POIs in this category
+                        poi_items = category_section.select("p.text-xs.font-light.mb-2")
+                        category_pois = [item.text.strip() for item in poi_items if item.text.strip()]
+                        
+                        if category_pois:
+                            # Store category POIs
+                            sanitized_category = f"poi_{category_name.lower().replace(' ', '_').replace('-', '_').replace('.', '').replace(',', '')}"
+                            property_data[sanitized_category + "_text"] = ", ".join(category_pois)
                             
-                            if not value_elem:
-                                # Try looking for any other p or span in this div
-                                all_p_spans = item_div.find_all(["p", "span"])
-                                if len(all_p_spans) > 1:
-                                    # Use the one that's not the label
-                                    for elem in all_p_spans:
-                                        if elem != label_elem:
-                                            value_elem = elem
-                                            break
+                            # Add to category dictionary
+                            all_poi_categories[category_name] = category_pois
                             
-                            if value_elem:
-                                label = label_elem.text.strip()
-                                value = value_elem.text.strip()
-                                section_items.append(f"{label}: {value}")
-            
-            # Add to property data if we found any items
-            if section_items:
-                property_data[field_name] = "; ".join(section_items)
+                            # Add to overall POI list
+                            all_pois.extend(category_pois)
+                            
+                            # Create individual POI fields
+                            if split_details:
+                                for poi in category_pois:
+                                    sanitized_poi = f"poi_{category_name.lower()}_{poi.lower().replace(' ', '_').replace('-', '_').replace('.', '').replace(',', '')}"
+                                    property_data[sanitized_poi] = True
+                
+                # Store all POIs as a single text field
+                if all_pois:
+                    property_data["poi_text"] = ", ".join(all_pois)
+                
+                # Store structured POI data
+                if all_poi_categories:
+                    poi_strings = []
+                    for category, items in all_poi_categories.items():
+                        poi_strings.append(f"{category}: {', '.join(items)}")
+                    
+                    property_data["poi_structured_text"] = "; ".join(poi_strings)
         
+        except Exception as e:
+            logging.warning(f"Error extracting POI data: {str(e)}")
+
         return property_data
     
     except Exception as e:
         logging.error(f"Error extracting details from {url}: {str(e)}", exc_info=True)
         # Return at least the URL so we know which property had an error
         return {"url": url, "error": str(e)}
-
+    
 def scrape_all_properties(links, min_delay=2, max_delay=5, results_dir=None):
     """
     Scrape all property details from the provided links
@@ -363,7 +365,7 @@ def scrape_all_properties(links, min_delay=2, max_delay=5, results_dir=None):
             time.sleep(random_delay)
             
         # Extract property details
-        property_data = extract_property_details(link)
+        property_data = extract_property_details(link, False)
         
         # Add to our collection if we got data
         if property_data:
