@@ -379,7 +379,7 @@ def scrape_all_properties(links, min_delay=2, max_delay=5, results_dir=None):
             scraped_urls.add(link)
             
             # Periodically save data to avoid losing everything if the script crashes
-            if (i + 1) % 100 == 0 or (i + 1) == len(links):
+            if (i + 1) % 300 == 0 or (i + 1) == len(links):
                 if results_dir:
                     timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
                     interim_filename = os.path.join(results_dir, f"interim_results_{timestamp}.csv")

@@ -1,3 +1,4 @@
+
 #!/usr/bin/env python3 
 """ 
 Rumah123 Property Scraper - Main Script 
@@ -6,7 +7,6 @@ It supports two modes of operation:
 1. Scrape links only (--mode links)
 2. Scrape property details from previously scraped links (--mode details)
 """ 
- 
 import os 
 import logging 
 import argparse 
@@ -21,6 +21,7 @@ def main():
     parser = argparse.ArgumentParser(description='Scrape property data from Rumah123') 
     parser.add_argument('--mode', type=str, choices=['links', 'details', 'both'], default='both',
                         help='Scraping mode: links (only scrape and save links), details (scrape details from saved links), or both (default)')
+    parser.add_argument('--start-page', type=int, default=1, help='Starting page number (default: 1)')
     parser.add_argument('--pages', type=int, default=1, help='Number of pages to scrape (used in links mode)') 
     parser.add_argument('--delay-min', type=float, default=2, help='Minimum delay between requests (seconds)') 
     parser.add_argument('--delay-max', type=float, default=5, help='Maximum delay between requests (seconds)') 
@@ -30,6 +31,9 @@ def main():
                         help='File containing property links to scrape (used in details mode)') 
     parser.add_argument('--output-dir', type=str, default=None,
                         help='Directory to save results (default: auto-generated timestamped directory)')
+    parser.add_argument('--start-link', type=int, default=0,
+                        help='Index of the link to start scraping details from (0-based index, used in details mode)')
+    
     args = parser.parse_args() 
      
     # Create results directory structure 
@@ -58,10 +62,11 @@ def main():
         
         # Step 1: Scrape property links (if mode is 'links' or 'both')
         if args.mode in ['links', 'both']:
-            logging.info(f"Will scrape up to {args.pages} pages from {args.url}")
+            logging.info(f"Will scrape from page {args.start_page} to page {args.start_page + args.pages - 1} from {args.url}")
             links_file = os.path.join(results_dir, "property_links.txt") 
             unique_links = scrape_all_links( 
                 start_url=args.url, 
+                start_page=args.start_page,
                 max_pages=args.pages, 
                 min_delay=args.delay_min, 
                 max_delay=args.delay_max, 
@@ -84,6 +89,16 @@ def main():
                     with open(links_file, 'r') as f:
                         unique_links = [line.strip() for line in f if line.strip()]
                     logging.info(f"Loaded {len(unique_links)} property links from file")
+                    
+                    # Apply start-link parameter
+                    if args.start_link > 0:
+                        if args.start_link < len(unique_links):
+                            skipped_links = args.start_link
+                            unique_links = unique_links[args.start_link:]
+                            logging.info(f"Starting from link #{args.start_link} (skipping {skipped_links} links)")
+                        else:
+                            logging.warning(f"Start link index ({args.start_link}) is greater than the number of links ({len(unique_links)}). Will start from beginning.")
+                            
                 except Exception as e:
                     logging.error(f"Failed to load links from file: {str(e)}")
                     return

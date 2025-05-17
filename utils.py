@@ -52,6 +52,8 @@ def get_headers():
         "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/14.1.1 Safari/605.1.15",
         "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/92.0.4515.107 Safari/537.36",
         "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:90.0) Gecko/20100101 Firefox/90.0"
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Edge/91.0.864.59 Safari/537.36",
+        "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_14_6) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/90.0.4430.212 Safari/537.36",  
     ]
     
     return {
@@ -59,7 +61,9 @@ def get_headers():
         "Accept-Language": "en-US,en;q=0.9,id;q=0.8",
         "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8",
         "Referer": "https://www.rumah123.com/",
-        "Cache-Control": "max-age=0"
+        "Cache-Control": "max-age=0",
+        "Connection": "keep-alive",
+        "Upgrade-Insecure-Requests": "1"
     }
 
 def clean_price(price_text):
@@ -212,34 +216,24 @@ def deduplicate_properties(properties, key="url"):
     
     return unique_properties
 
-def request_with_backoff(
-    url,
-    headers=None,
-    params=None,
-    max_retries=5,
-    backoff_factor=1.5,
-    status_forcelist=(429, 500, 502, 503, 504),
-    **kwargs
-):
-    """
-    Perform GET with exponential backoff on specified status codes.
-    """
-    for attempt in range(1, max_retries + 1):
-        resp = requests.get(url, headers=headers, params=params, **kwargs)
-        if resp.status_code not in status_forcelist:
-            return resp
-
-        wait = backoff_factor ** attempt + random.uniform(0, 1)
-        logging.warning(
-            f"[{resp.status_code}] Rate‑limited or server error on {url}. "
-            f"Retry {attempt}/{max_retries} after {wait:.1f}s"
-        )
+def request_with_backoff(url, headers=None, params=None, status_forcelist=(429, 500, 502, 503, 504), **kwargs):
+    if "timeout" not in kwargs:
+        kwargs["timeout"] = 10
+    
+    attempt = 0
+    while True:
+        attempt += 1
+        try:
+            resp = requests.get(url, headers=headers, params=params, **kwargs)
+            if resp.status_code not in status_forcelist:
+                return resp
+            logging.warning(f"[{resp.status_code}] Server responded with retryable status on {url}. Attempt {attempt}")
+        except requests.RequestException as e:
+            logging.warning(f"Request error on attempt {attempt} for {url}: {e}")
+        
+        wait = min(60, 2 ** attempt) + random.uniform(0, 1)  # max delay 60s (bisa disesuaikan)
+        logging.info(f"Waiting {wait:.1f}s before retrying...")
         time.sleep(wait)
-
-    # terakhir, coba sekali lagi dan biarkan exception jika gagal
-    resp = requests.get(url, headers=headers, params=params, **kwargs)
-    resp.raise_for_status()
-    return resp
 
 def load_links_from_file(file_path):
     """
@@ -264,31 +258,6 @@ def load_links_from_file(file_path):
     except Exception as e:
         logging.error(f"Error loading links from file: {str(e)}")
         return []
-
-def save_links_to_file(links, file_path):
-    """
-    Save property links to a text file
-    
-    Args:
-        links (list): List of property links
-        file_path (str): Path to save the links
-        
-    Returns:
-        bool: True if successful, False otherwise
-    """
-    try:
-        # Create directory if it doesn't exist
-        os.makedirs(os.path.dirname(os.path.abspath(file_path)), exist_ok=True)
-        
-        with open(file_path, 'w', encoding='utf-8') as f:
-            for link in links:
-                f.write(f"{link}\n")
-        
-        logging.info(f"Saved {len(links)} property links to {file_path}")
-        return True
-    except Exception as e:
-        logging.error(f"Error saving links to file: {str(e)}")
-        return False
 
 if __name__ == "__main__":
     # This allows the module to be run independently for testing
