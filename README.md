@@ -58,7 +58,8 @@ python main.py --mode <mode> [opsi lainnya]
 | Argumen        | Deskripsi                                                                    |
 | -------------- | ---------------------------------------------------------------------------- |
 | `--mode`       | Mode scraping yang diinginkan: `links`, `details`, atau `both`.              |
-| `--pages`      | Jumlah halaman yang ingin di-scrape (default: 1).                            |
+| `--start-page` | Halaman awal untuk mulai scraping (default: 1).                              |
+| `--pages`      | Jumlah halaman yang ingin di-scrape mulai dari `--start-page`.               |
 | `--delay-min`  | Delay minimum antar request (default: 1 detik).                              |
 | `--delay-max`  | Delay maksimum antar request (default: 3 detik).                             |
 | `--url`        | URL awal properti yang akan di-scrape.                                       |
