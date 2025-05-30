@@ -97,6 +97,8 @@ Termasuk:
 - property_specifications_summary.csv
 - scraping.log
 
+oiya, untuk menggabungkan link yang didapat, bisa jalankan combine_links.py. ntar hasilnya ada di result/combine_link. kalau buat combine detail belum ada, mohon maaf :)
+
 ## ⚠️ Disclaimer
 
 - Hanya untuk penggunaan edukatif/non-komersial.
