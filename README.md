@@ -1,6 +1,6 @@
 # 🏠 House Property Data Scraper
 
-Scraper untuk mengambil data properti (rumah) dari situs [Rumah123.com](https://www.rumah123.com/), ditujukan untuk keperluan riset dan edukasi.
+Scraper untuk mengambil data properti (rumah) dari situs [Rumah123.com](https://www.rumah123.com/), ditujukan untuk keperluan riset dan edukasi (capstone project laskar AI).
 
 ## 🔗 Repositori
 
