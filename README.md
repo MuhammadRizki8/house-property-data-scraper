@@ -64,7 +64,7 @@ python main.py --mode <mode> [opsi lainnya]
 | `--delay-max`  | Delay maksimum antar request (default: 3 detik).                             |
 | `--url`        | URL awal properti yang akan di-scrape.                                       |
 | `--links-file` | Path ke file `.txt` berisi daftar URL properti (hanya untuk `details` mode). |
-
+| `--start-link` | mulai dari link ke-berapa? (hanya untuk `details` mode).                     |
 ### 🔧🧪 Contoh Penggunaan
 
 Link saja
@@ -76,7 +76,7 @@ python main.py --mode links --pages 10 --url "https://www.rumah123.com/jual/dki-
 Detail dari File Link
 
 ```
-python main.py --mode details --links-file "results/scraping_session_20250517_123456/property_links.txt"
+python main.py --mode details --links-file "results/combined_links/[unscrape]property_links.txt" --delay-min 2 --delay-max 4 --start-link 2001
 ```
 
 Link dan Detail Sekaligus
