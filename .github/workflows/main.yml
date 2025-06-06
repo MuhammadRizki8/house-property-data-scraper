@@ -1,12 +1,26 @@
-name: Scrape Bandung Property Links
+name: Bandung Property Scraper
 
 on:
   # Manual trigger
   workflow_dispatch:
     inputs:
+      mode:
+        description: 'Scraping mode'
+        required: true
+        default: 'links'
+        type: choice
+        options:
+          - links
+          - details
+          - both
+      start_page:
+        description: 'Starting page number'
+        required: false
+        default: '1'
+        type: string
       pages:
         description: 'Number of pages to scrape'
-        required: true
+        required: false
         default: '5'
         type: string
       delay_min:
@@ -19,16 +33,33 @@ on:
         required: false
         default: '4'
         type: string
+      url:
+        description: 'Base URL for property scraping'
+        required: false
+        default: 'https://www.rumah123.com/jual/bandung/rumah/'
+        type: string
+      links_file:
+        description: 'Path to links file (for details mode only)'
+        required: false
+        default: ''
+        type: string
+      start_link:
+        description: 'Starting link number (for details mode only)'
+        required: false
+        default: '1'
+        type: string
 
   # Schedule to run daily at 2 AM UTC (9 AM WIB)
   schedule:
     - cron: '0 2 * * *'
+
   # Trigger on push to main
   push:
     branches:
       - main
+
 jobs:
-  scrape-bandung-links:
+  scrape-bandung-property:
     runs-on: ubuntu-latest
 
     steps:
@@ -48,14 +79,39 @@ jobs:
       - name: Create results directory
         run: mkdir -p results
 
-      - name: Run Bandung property links scraper
+      - name: Run property scraper
         run: |
-          python main.py \
-            --mode links \
-            --pages ${{ github.event.inputs.pages || '5' }} \
-            --delay-min ${{ github.event.inputs.delay_min || '2' }} \
-            --delay-max ${{ github.event.inputs.delay_max || '4' }} \
-            --url "https://www.rumah123.com/jual/jawa-barat/bandung/rumah/"
+          # Build command dynamically based on inputs
+          CMD="python main.py"
+          CMD="$CMD --mode ${{ github.event.inputs.mode || 'links' }}"
+
+          # Add start-page if provided
+          if [ -n "${{ github.event.inputs.start_page }}" ] && [ "${{ github.event.inputs.start_page }}" != "1" ]; then
+            CMD="$CMD --start-page ${{ github.event.inputs.start_page }}"
+          fi
+
+          # Add pages for links or both mode
+          if [ "${{ github.event.inputs.mode || 'links' }}" = "links" ] || [ "${{ github.event.inputs.mode || 'links' }}" = "both" ]; then
+            CMD="$CMD --pages ${{ github.event.inputs.pages || '5' }}"
+            CMD="$CMD --url '${{ github.event.inputs.url || 'https://www.rumah123.com/jual/bandung/rumah/' }}'"
+          fi
+
+          # Add links-file and start-link for details mode
+          if [ "${{ github.event.inputs.mode || 'links' }}" = "details" ]; then
+            if [ -n "${{ github.event.inputs.links_file }}" ]; then
+              CMD="$CMD --links-file '${{ github.event.inputs.links_file }}'"
+            fi
+            if [ -n "${{ github.event.inputs.start_link }}" ] && [ "${{ github.event.inputs.start_link }}" != "1" ]; then
+              CMD="$CMD --start-link ${{ github.event.inputs.start_link }}"
+            fi
+          fi
+
+          # Add delay parameters
+          CMD="$CMD --delay-min ${{ github.event.inputs.delay_min || '2' }}"
+          CMD="$CMD --delay-max ${{ github.event.inputs.delay_max || '4' }}"
+
+          echo "Running command: $CMD"
+          eval $CMD
 
       - name: Get timestamp for artifact naming
         id: timestamp
@@ -64,7 +120,7 @@ jobs:
       - name: Upload scraped links as artifact
         uses: actions/upload-artifact@v4
         with:
-          name: bandung-property-links-${{ steps.timestamp.outputs.timestamp }}
+          name: bandung-property-scraper-${{ github.event.inputs.mode || 'links' }}-${{ steps.timestamp.outputs.timestamp }}
           path: |
             results/
             *.log
@@ -73,7 +129,13 @@ jobs:
       - name: Display scraping summary
         run: |
           echo "=== Scraping Summary ==="
+          echo "Mode: ${{ github.event.inputs.mode || 'links' }}"
+          echo "Start Page: ${{ github.event.inputs.start_page || '1' }}"
+          echo "Pages: ${{ github.event.inputs.pages || '5' }}"
+          echo "URL: ${{ github.event.inputs.url || 'https://www.rumah123.com/jual/bandung/rumah/' }}"
+
           if [ -d "results" ]; then
+            echo ""
             echo "Results directory contents:"
             ls -la results/
             
@@ -90,6 +152,12 @@ jobs:
                 LINK_COUNT=$(wc -l < "$LATEST_DIR/property_links.txt")
                 echo ""
                 echo "Total property links scraped: $LINK_COUNT"
+              fi
+              
+              # Count properties if CSV exists
+              if [ -f "$LATEST_DIR/rumah123_properties_final.csv" ]; then
+                PROP_COUNT=$(tail -n +2 "$LATEST_DIR/rumah123_properties_final.csv" | wc -l)
+                echo "Total property details scraped: $PROP_COUNT"
               fi
             fi
           fi
