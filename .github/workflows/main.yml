@@ -49,14 +49,14 @@ on:
         default: '1'
         type: string
 
-  # Schedule to run daily at 2 AM UTC (9 AM WIB)
-  schedule:
-    - cron: '0 2 * * *'
+  # # Schedule to run daily at 2 AM UTC (9 AM WIB)
+  # schedule:
+  #   - cron: '0 2 * * *'
 
-  # Trigger on push to main
-  push:
-    branches:
-      - main
+  # # Trigger on push to main
+  # push:
+  #   branches:
+  #     - main
 
 jobs:
   scrape-bandung-property:
