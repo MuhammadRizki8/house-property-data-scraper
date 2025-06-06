@@ -1,0 +1,99 @@
+name: Scrape Bandung Property Links
+
+on:
+  # Manual trigger
+  workflow_dispatch:
+    inputs:
+      pages:
+        description: 'Number of pages to scrape'
+        required: true
+        default: '5'
+        type: string
+      delay_min:
+        description: 'Minimum delay between requests (seconds)'
+        required: false
+        default: '2'
+        type: string
+      delay_max:
+        description: 'Maximum delay between requests (seconds)'
+        required: false
+        default: '4'
+        type: string
+  
+  # Schedule to run daily at 2 AM UTC (9 AM WIB)
+  schedule:
+    - cron: '0 2 * * *'
+
+jobs:
+  scrape-bandung-links:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+    
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.9'
+    
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+    
+    - name: Create results directory
+      run: mkdir -p results
+    
+    - name: Run Bandung property links scraper
+      run: |
+        python main.py \
+          --mode links \
+          --pages ${{ github.event.inputs.pages || '5' }} \
+          --delay-min ${{ github.event.inputs.delay_min || '2' }} \
+          --delay-max ${{ github.event.inputs.delay_max || '4' }} \
+          --url "https://www.rumah123.com/jual/jawa-barat/bandung/rumah/"
+    
+    - name: Get timestamp for artifact naming
+      id: timestamp
+      run: echo "timestamp=$(date +'%Y%m%d_%H%M%S')" >> $GITHUB_OUTPUT
+    
+    - name: Upload scraped links as artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: bandung-property-links-${{ steps.timestamp.outputs.timestamp }}
+        path: |
+          results/
+          *.log
+        retention-days: 30
+    
+    - name: Display scraping summary
+      run: |
+        echo "=== Scraping Summary ==="
+        if [ -d "results" ]; then
+          echo "Results directory contents:"
+          ls -la results/
+          
+          # Find the latest scraping session directory
+          LATEST_DIR=$(find results -name "scraping_session_*" -type d | sort | tail -1)
+          if [ -n "$LATEST_DIR" ]; then
+            echo ""
+            echo "Latest session: $LATEST_DIR"
+            echo "Files in latest session:"
+            ls -la "$LATEST_DIR"
+            
+            # Count links if file exists
+            if [ -f "$LATEST_DIR/property_links.txt" ]; then
+              LINK_COUNT=$(wc -l < "$LATEST_DIR/property_links.txt")
+              echo ""
+              echo "Total property links scraped: $LINK_COUNT"
+            fi
+          fi
+        fi
+        
+        # Show last few lines of log if exists
+        if [ -f "scraping.log" ]; then
+          echo ""
+          echo "=== Last 10 lines of scraping log ==="
+          tail -10 scraping.log
+        fi
